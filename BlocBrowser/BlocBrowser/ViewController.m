@@ -10,6 +10,7 @@
 #import <WebKit/WebKit.h>
 #import "AwesomeFloatingToolbar.h"
 
+
 #define kWebBrowserBackString NSLocalizedString(@"Back", @"Back command")
 #define kWebBrowserForwardString NSLocalizedString(@"Forward", @"Forward command")
 #define kWebBrowserStopString NSLocalizedString(@"Stop", @"Stop command")
@@ -27,6 +28,17 @@
 
 @implementation ViewController
 #pragma mark - UIViewController
+
+- (void) floatingToolbar:(AwesomeFloatingToolbar *)toolbar didTryToPanWithOffset:(CGPoint)offset {
+    CGPoint startingPoint = toolbar.frame.origin;
+    CGPoint newPoint = CGPointMake(startingPoint.x + offset.x, startingPoint.y + offset.y);
+    
+    CGRect potentialNewFrame = CGRectMake(newPoint.x, newPoint.y, CGRectGetWidth(toolbar.frame), CGRectGetHeight(toolbar.frame));
+    
+    if (CGRectContainsRect(self.view.bounds, potentialNewFrame)) {
+        toolbar.frame = potentialNewFrame;
+        }
+    }
 
 -(void) resetWebView {
     WKWebView *newWebView = [[WKWebView alloc] init];
@@ -60,15 +72,15 @@
     
     for (UIView *viewToAdd in @[self.webView, self.textField, self.awesomeToolBar]) {
         [mainView addSubview:viewToAdd];
-        }
+    }
     
     self.view = mainView;
-
     
-//    NSString *urlString = @"http://wikipedia.org";
-//    NSURL *url = [NSURL URLWithString:urlString];
-//    NSURLRequest *request = [NSURLRequest requestWithURL:url];
-//    [self.webView loadRequest:request];
+    
+    //    NSString *urlString = @"http://wikipedia.org";
+    //    NSURL *url = [NSURL URLWithString:urlString];
+    //    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    //    [self.webView loadRequest:request];
     
 }
 
@@ -76,9 +88,9 @@
     [super viewDidLoad];
     
     UIAlertView *welcomeMessage = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Welcome!", @"Welcome title")
-                                        message:NSLocalizedString(@"Welcome to Bloc Browser!", @"Welcome comment")
-                                        delegate:nil
-                                        cancelButtonTitle:NSLocalizedString(@"OK", @"button title") otherButtonTitles:nil];
+                                                             message:NSLocalizedString(@"Welcome to Bloc Browser!", @"Welcome comment")
+                                                            delegate:nil
+                                                   cancelButtonTitle:NSLocalizedString(@"OK", @"button title") otherButtonTitles:nil];
     
     [welcomeMessage show];
     
@@ -86,7 +98,7 @@
     // Do any additional setup after loading the view, typically from a nib.
     self.activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:self.activityIndicator];
-//    [self.activityIndicator startAnimating];
+    //    [self.activityIndicator startAnimating];
     
     
 }
@@ -113,36 +125,40 @@
 - (void) floatingToolbar:(AwesomeFloatingToolbar *)toolbar didSelectButtonWithTitle:(NSString *)title {
     if ([title isEqual:kWebBrowserBackString]) {
         [self.webView goBack];
-        } else if ([title isEqual:kWebBrowserForwardString]) {
-            [self.webView goForward];
-            } else if ([title isEqual:kWebBrowserStopString]) {
-                [self.webView stopLoading];
-                } else if ([title isEqual:kWebBrowserRefreshString]) {
-                    [self.webView reload];
-                    }
+    } else if ([title isEqual:kWebBrowserForwardString]) {
+        [self.webView goForward];
+    } else if ([title isEqual:kWebBrowserStopString]) {
+        [self.webView stopLoading];
+    } else if ([title isEqual:kWebBrowserRefreshString]) {
+        [self.webView reload];
     }
+}
 
-#pragma mark - UITextFieldDelegate 
+#pragma mark - UITextFieldDelegate
 
--(BOOL) textFieldShouldReturn:(UITextField *)textField{
+- (BOOL)textFieldShouldReturn:(UITextField *)textField {
     [textField resignFirstResponder];
     
     NSString *URLString = textField.text;
     
-    NSURL *URL = [NSURL URLWithString:URLString];
-    
-    if (!URL.scheme) {
-        
-        // The user used spaces:
+    //if user either included spaces or did not add a ".com" or similar address
+    if ([URLString containsString:@" "] || ![URLString containsString:@"."]) {
         URLString = [URLString stringByReplacingOccurrencesOfString:@" " withString:@"+"];
-        URL = [NSURL URLWithString:[NSString stringWithFormat:@"http://google.com/search?q=%@", URLString]];
-        
+        NSString *googleSearch = @"http://www.google.com/search?q=";
+        URLString = [googleSearch stringByAppendingString:URLString];
+    }
+    NSURL *URL = [NSURL URLWithString: URLString];
+    
+    if(!URL.scheme) {
+        //The user didn't type http: or https:
+        URL = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@", URLString]];
     }
     
     if (URL) {
         NSURLRequest *request = [NSURLRequest requestWithURL:URL];
         [self.webView loadRequest:request];
     }
+    
     return NO;
 }
 
@@ -162,30 +178,30 @@
 }
 
 -(void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error{
-        if (error.code != NSURLErrorCancelled) {
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Error", @"Error")
-                                                                                                                    message:[error localizedDescription]
-                                                                                                               preferredStyle:UIAlertControllerStyleAlert];
-            
-            UIAlertAction *okAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil)
-                                                    style:UIAlertActionStyleCancel handler:nil];
-            [alert addAction:okAction];
+    if (error.code != NSURLErrorCancelled) {
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Error", @"Error")
+                                                                       message:[error localizedDescription]
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+        
+        UIAlertAction *okAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil)
+                                                           style:UIAlertActionStyleCancel handler:nil];
+        [alert addAction:okAction];
+        
+        [self presentViewController:alert animated:YES completion:nil];
+    }
+    [self updateButtonsAndTitle];
     
-            [self presentViewController:alert animated:YES completion:nil];
-            }
-        [self updateButtonsAndTitle];
-    
-        }
+}
 
-#pragma mark - Miscellaneous 
+#pragma mark - Miscellaneous
 
 - (void) updateButtonsAndTitle {
     NSString *webpageTitle = [self.webView.title copy];
     if ([webpageTitle length]) {
         self.title = webpageTitle;
-        } else {
-            self.title = self.webView.URL.absoluteString;
-            }
+    } else {
+        self.title = self.webView.URL.absoluteString;
+    }
     [self.awesomeToolBar setEnabled:[self.webView canGoBack] forButtonWithTitle:kWebBrowserBackString];
     [self.awesomeToolBar setEnabled:[self.webView canGoForward] forButtonWithTitle:kWebBrowserForwardString];
     [self.awesomeToolBar setEnabled:[self.webView isLoading] forButtonWithTitle:kWebBrowserStopString];
@@ -194,3 +210,34 @@
 
 
 @end
+
+//Fix from previous checkpoint 
+
+//- (BOOL)textFieldShouldReturn:(UITextField *)textField {
+//    [textField resignFirstResponder];
+//
+//    NSString *URLString = textField.text;
+//    
+//    //if user either included spaces or did not add a ".com" or similar address
+//    if ([URLString containsString:@" "] || ![URLString containsString:@"."]) {
+//        URLString = [URLString stringByReplacingOccurrencesOfString:@" " withString:@"+"];
+//        NSString *googleSearch = @"http://www.google.com/search?q=";
+//        URLString = [googleSearch stringByAppendingString:URLString];
+//    }
+//    NSURL *URL = [NSURL URLWithString: URLString];
+//    
+//    if(!URL.scheme) {
+//        //The user didn't type http: or https:
+//        URL = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@", URLString]];
+//    }
+//    
+//    if (URL) {
+//        NSURLRequest *request = [NSURLRequest requestWithURL:URL];
+//        [self.webView loadRequest:request];
+//    }
+//    
+//    return NO;
+//}
+
+
+
