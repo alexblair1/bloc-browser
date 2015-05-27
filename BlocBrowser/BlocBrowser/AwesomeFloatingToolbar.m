@@ -52,8 +52,11 @@
             [button setTitle:titleForThisButton forState:UIControlStateNormal];
             button.backgroundColor = colorForThisButton;
             button.titleLabel.textColor = [UIColor whiteColor];
+            [button addTarget:self action:@selector(tapFired:) forControlEvents:UIControlEventTouchUpInside];
+          
             
             [buttonsArray addObject:button];
+            
         }
         
         self.buttons = buttonsArray;
@@ -70,11 +73,16 @@
         self.pinchGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchFired:)];
         [self addGestureRecognizer:self.pinchGesture
          ];
+        
+
     }
     return self;
 }
 
+
+
 #pragma mark - Touch Handling
+
 
 //- (void) tapFired:(UITapGestureRecognizer *)recognizer {
 //    if (recognizer.state == UIGestureRecognizerStateRecognized) { // #3
@@ -88,6 +96,12 @@
 //        }
 //    }
 //}
+
+- (void)tapFired:(UIButton *)sender {
+    if ([self.delegate respondsToSelector:@selector(floatingToolbar:didSelectButtonWithTitle:)]) {
+        [self.delegate floatingToolbar:self didSelectButtonWithTitle:sender.titleLabel.text];
+    }
+}
 
 - (void) panFired:(UIPanGestureRecognizer *)recognizer {
     if (recognizer.state == UIGestureRecognizerStateChanged) {
@@ -117,7 +131,7 @@
 }
 
 -(void) pinchFired:(UIPinchGestureRecognizer *) recognizer {
-    
+ 
     if ([self.delegate respondsToSelector:@selector(floatingToolbar:didTryToPinch:)]) {
         [self.delegate floatingToolbar:self didTryToPinch:recognizer.scale];
     }
@@ -176,7 +190,7 @@
     NSUInteger index = [self.currentTitles indexOfObject:title];
     
     if (index != NSNotFound) {
-        self.userInteractionEnabled = enabled;
+        
         UIButton *button = [self.buttons objectAtIndex:index];
         button.userInteractionEnabled = enabled;
         button.alpha = enabled ? 1.0 : 0.25;

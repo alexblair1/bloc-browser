@@ -30,7 +30,6 @@
 @interface AwesomeFloatingToolbar : UIView //this is the interface for the toolbar itself
 
 - (instancetype) initWithFourTitles:(NSArray *)titles; //custom initializer that takes an array of four titles
-
 - (void) setEnabled:(BOOL)enabled forButtonWithTitle:(NSString *)title; //method to disable and enable buttons based on title
 
 @property (nonatomic, weak) id <AwesomeFloatingToolbarDelegate> delegate; //delegate property to use if a delegate is desired
