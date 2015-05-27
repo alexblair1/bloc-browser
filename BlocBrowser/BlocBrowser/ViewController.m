@@ -37,8 +37,13 @@
     
     if (CGRectContainsRect(self.view.bounds, potentialNewFrame)) {
         toolbar.frame = potentialNewFrame;
-        }
     }
+}
+
+- (void) floatingToolbar:(AwesomeFloatingToolbar *)toolbar didTryToPinch:(CGFloat)scale {
+    CGAffineTransform newTransform =  CGAffineTransformMakeScale(scale, scale);
+    [self.awesomeToolBar setTransform:newTransform];
+}
 
 -(void) resetWebView {
     WKWebView *newWebView = [[WKWebView alloc] init];
@@ -75,7 +80,7 @@
     }
     
     self.view = mainView;
-    
+    self.awesomeToolBar.frame = CGRectMake(20, 100, 280, 60);
     
     //    NSString *urlString = @"http://wikipedia.org";
     //    NSURL *url = [NSURL URLWithString:urlString];
@@ -117,7 +122,7 @@
     self.textField.frame = CGRectMake(0, 0, width, itemHeight);
     self.webView.frame = CGRectMake(0, CGRectGetMaxY(self.textField.frame), width, browserHeight);
     
-    self.awesomeToolBar.frame = CGRectMake(20, 100, 280, 60);
+    
 }
 
 #pragma mark - AwesomeFloatingToolbarDelegate
@@ -211,13 +216,13 @@
 
 @end
 
-//Fix from previous checkpoint 
+//Fix from previous checkpoint
 
 //- (BOOL)textFieldShouldReturn:(UITextField *)textField {
 //    [textField resignFirstResponder];
 //
 //    NSString *URLString = textField.text;
-//    
+//
 //    //if user either included spaces or did not add a ".com" or similar address
 //    if ([URLString containsString:@" "] || ![URLString containsString:@"."]) {
 //        URLString = [URLString stringByReplacingOccurrencesOfString:@" " withString:@"+"];
@@ -225,17 +230,17 @@
 //        URLString = [googleSearch stringByAppendingString:URLString];
 //    }
 //    NSURL *URL = [NSURL URLWithString: URLString];
-//    
+//
 //    if(!URL.scheme) {
 //        //The user didn't type http: or https:
 //        URL = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@", URLString]];
 //    }
-//    
+//
 //    if (URL) {
 //        NSURLRequest *request = [NSURLRequest requestWithURL:URL];
 //        [self.webView loadRequest:request];
 //    }
-//    
+//
 //    return NO;
 //}
 

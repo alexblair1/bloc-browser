@@ -23,6 +23,7 @@
 
 - (void) floatingToolbar:(AwesomeFloatingToolbar *)toolbar didSelectButtonWithTitle:(NSString *)title; //the optional delegate method is declared. If the delegate implements it, it will be called when a user taps a button
 - (void) floatingToolbar:(AwesomeFloatingToolbar *)toolbar didTryToPanWithOffset:(CGPoint)offset;
+- (void) floatingToolbar:(AwesomeFloatingToolbar *)toolbar didTryToPinch:(CGFloat)scale;
 
 @end // definition of the delegate protocal has ended
 
